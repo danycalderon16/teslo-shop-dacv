@@ -6,7 +6,7 @@ const Custom404 = () => {
   return (
     <ShopLayout
       title="Page Not Found"
-      description={"No hay nada que mostrar aquí"}
+      pageDescription={"No hay nada que mostrar aquí"}
     >
       <Box
         display={"flex"}
