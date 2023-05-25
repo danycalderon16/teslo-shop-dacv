@@ -3,7 +3,7 @@ import { Grid } from '@mui/material'
 import React, { FC } from 'react'
 import { ProductCard } from './ProductCard'
 
-interface Props{
+interface Props {
   products: IProduct[]
 }
 
