@@ -1,5 +1,5 @@
 import { IProduct } from '@/interfaces'
-import { Box, Card, CardActions, CardMedia, Grid, Link, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardActions, CardMedia, Chip, Grid, Link, Typography } from '@mui/material'
 import NextLink from 'next/link'
 import React, { FC, useMemo, useState } from 'react'
 
@@ -27,7 +27,11 @@ export const ProductCard: FC<Props> = ({ product }) => {
     >
       <Card>
         <Link component={NextLink} href={`product/${product.slug}`} passHref prefetch={false}>
-          <CardActions>
+          <CardActionArea>
+            {product.inStock === 0 &&
+            <Chip color='primary' label="No hay disponibles"
+              sx={{ position: 'absolute', zIndex: 99, top: '10px', left: '10px' }} />
+            }
             <CardMedia
               component='img'
               className='fadeIn'
@@ -35,10 +39,10 @@ export const ProductCard: FC<Props> = ({ product }) => {
               alt={product.title}
               onLoad={() => setIsImageLoaded(true)}
             />
-          </CardActions>
+          </CardActionArea>
         </Link>
       </Card>
-      <Box sx={{ ml: 1, display: isImageLoaded ? 'block':'none'}} className='fadeIn'>
+      <Box sx={{ ml: 1, display: isImageLoaded ? 'block' : 'none' }} className='fadeIn'>
         <Typography fontWeight={700}>{product.title}</Typography>
         <Typography fontWeight={500}>${product.price}</Typography>
       </Box>

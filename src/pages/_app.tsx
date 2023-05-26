@@ -1,9 +1,9 @@
 import type { AppProps } from 'next/app'
-import useSWR, { SWRConfig } from 'swr'
+import { SWRConfig } from 'swr'
 import '@/styles/globals.css'
 import { lightTheme } from '@/themes'
 import { CssBaseline, ThemeProvider } from '@mui/material'
-import { UIProvider } from '@/context'
+import { CartProvider, UIProvider } from '@/context'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -12,12 +12,14 @@ export default function App({ Component, pageProps }: AppProps) {
         fetcher: (resource, init) => fetch(resource, init).then(res => res.json())
       }}
     >
-      <UIProvider>
-        <ThemeProvider theme={lightTheme}>
-          <CssBaseline />
-          <Component {...pageProps} />
-        </ThemeProvider>
-      </UIProvider>
+      <CartProvider>
+        <UIProvider>
+          <ThemeProvider theme={lightTheme}>
+            <CssBaseline />
+            <Component {...pageProps} />
+          </ThemeProvider>
+        </UIProvider>
+      </CartProvider>
     </SWRConfig>
   )
 }
