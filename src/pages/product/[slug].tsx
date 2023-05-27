@@ -36,10 +36,10 @@ const ProductPage: NextPage<Props> = ({ product }) => {
     }));
   }
 
-  const onChangeQuantity = (value:number) => {
+  const onChangeQuantity = (quantity:number) => {
     setTempCartProduct(currentProdcut => ({
       ...currentProdcut,
-      quantity: currentProdcut.quantity + value,
+      quantity,
     }))
   }
 

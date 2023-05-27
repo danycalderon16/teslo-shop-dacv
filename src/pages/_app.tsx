@@ -4,8 +4,16 @@ import '@/styles/globals.css'
 import { lightTheme } from '@/themes'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { CartProvider, UIProvider } from '@/context'
+import { useState, useEffect } from 'react'
 
 export default function App({ Component, pageProps }: AppProps) {
+  const [showChild, setShowChild] = useState(false);
+    useEffect(() => {
+        setShowChild(true);
+    }, []);
+    if (!showChild) {
+        return <></>;
+    }
   return (
     <SWRConfig
       value={{

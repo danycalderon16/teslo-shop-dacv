@@ -10,26 +10,23 @@ interface Props {
 
 export const ItemCounter: FC<Props> = ({currentValue, maxValue, updateQuantity}) => {
 
-  const setNewValue = (value: number) =>{    
-    if(currentValue+value === 0) {
-      console.log("No puede ser 0");
-      return;
+  const addOrRemove = (value: number) =>{    
+    if ( value === -1 ) {
+      if ( currentValue === 1 ) return;
+      return updateQuantity( currentValue - 1);
     }
-    if(currentValue+value >maxValue) {
-      console.log("No hay tanto stock");
-      return;
-    }
-    updateQuantity(value);
+    if ( currentValue >= maxValue ) return;
+    updateQuantity( currentValue + 1 );
   }
 
   return (
     <Box display={'flex'}
       alignItems={'center'}>
-      <IconButton onClick={()=>setNewValue(-1)}>
+      <IconButton onClick={()=>addOrRemove(-1)}>
         <RemoveCircleOutline />
       </IconButton>
       <Typography sx={{ width: 40, textAlign: 'center' }}>{currentValue}</Typography>
-      <IconButton onClick={()=>setNewValue(1)}>
+      <IconButton onClick={()=>addOrRemove(1)}>
         <AddCircleOutline/>
       </IconButton>
     </Box>
