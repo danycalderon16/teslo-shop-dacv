@@ -1,16 +1,19 @@
+import React from 'react'
+import { GetServerSideProps } from 'next'
+
 import { ShopLayout } from '@/components/layouts'
 import { Button, Box, FormControl, Grid, MenuItem, Select, TextField, Typography } from '@mui/material'
-import React from 'react'
+import { jwt } from '@/utils'
 
 const AddressPage = () => {
   return (
     <ShopLayout
       title="Dirección"
       pageDescription='Confirmar dirección del destino'>
-      
+
       <Typography variant='h1' component={'h1'}>Dirección</Typography>
-      
-      <Grid container spacing={2} sx={{mt:2}}>
+
+      <Grid container spacing={2} sx={{ mt: 2 }}>
         <Grid item xs={12} sm={6}>
           <TextField label='Nombre' variant='filled' fullWidth />
         </Grid>
@@ -37,15 +40,15 @@ const AddressPage = () => {
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <Select 
+            <Select
               variant='filled'
               label='País'
               value={1}
             >
-              <MenuItem value={1}>Costa Rica</MenuItem> 
-              <MenuItem value={2}>El Salvador</MenuItem> 
-              <MenuItem value={3}>Honduras</MenuItem> 
-              <MenuItem value={4}>México</MenuItem> 
+              <MenuItem value={1}>Costa Rica</MenuItem>
+              <MenuItem value={2}>El Salvador</MenuItem>
+              <MenuItem value={3}>Honduras</MenuItem>
+              <MenuItem value={4}>México</MenuItem>
             </Select>
           </FormControl>
 
@@ -55,15 +58,48 @@ const AddressPage = () => {
         </Grid>
 
       </Grid>
-      
-      <Box sx={{mt:5}} display='flex' justifyContent='center'>
+
+      <Box sx={{ mt: 5 }} display='flex' justifyContent='center'>
         <Button color='secondary' className='circular-btn' size='large'>
           Revisar pedido
         </Button>
       </Box>
-      
+
     </ShopLayout>
   )
 }
 
-export default AddressPage
+
+// You should use getServerSideProps when:
+// - Only if you need to pre-render a page whose data must be fetched at request time
+
+
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  const { token = '' } = req.cookies;
+  let userId = '';
+  let isValidToken = false;
+
+  try {
+    userId = await jwt.isValidToken(token);
+    isValidToken = true;
+  } catch (error) {
+    isValidToken = false;
+  }
+
+  if(!isValidToken) {
+    return {
+      redirect: {
+        destination:'/auth/login?p=/checkout/address',
+        permanent:false
+      }
+    }
+  }
+
+  return {
+    props: {
+      
+    }
+  }
+}
+
+export default AddressPage;

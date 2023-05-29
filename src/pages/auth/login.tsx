@@ -22,9 +22,9 @@ const LoginPage = () => {
   
   const onLoginUser = async ({ email, password }: FormData) => {
     setShowError(false);
-
+    
     const isValidLogin = await loginUser(email, password);
-
+    
     if(!isValidLogin) {
       setShowError(true)
       setTimeout(() => {
@@ -32,8 +32,8 @@ const LoginPage = () => {
       }, 3000);
       return;
     }
-  
-    router.replace("/");
+    const destination = router.query.p?.toString() || '/';
+    router.replace(destination);
   }
 
   return (
@@ -84,7 +84,7 @@ const LoginPage = () => {
             </Grid>
 
             <Grid item xs={12} display={'flex'} justifyContent={'center'}>
-              <Link component={NextLink} href='/auth/register' passHref underline='always'>¿No tienes cuenta?</Link>
+              <Link component={NextLink} href={router.query.q ? `/auth/register?p=${router.query.q}`:'/auth/register'} passHref underline='always'>¿No tienes cuenta?</Link>
             </Grid>
           </Grid>
         </Box>
