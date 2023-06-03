@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { Button, Box, FormControl, Grid, MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
@@ -33,9 +33,13 @@ const getAddressFromCookies = (): FormData => {
 }
 
 const AddressPage = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     defaultValues: getAddressFromCookies()
   });
+
+  useEffect(() => {
+    reset(getAddressFromCookies());
+  }, [reset])
 
   const { updateAddress } = useContext(CartContext);
   const router = useRouter();
@@ -111,22 +115,25 @@ const AddressPage = () => {
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            {/* <FormControl fullWidth> */}
               <TextField
-                select
+                // select
                 defaultValue={Cookies.get('country') || countries[0].code}
                 variant='filled'
+                fullWidth
                 label='País'
                 {...register('country')}
                 error={!!errors.country}
-              >{
+                helperText={errors.country?.message}
+              >
+                {/* {
                   countries.map(country => (
                     <MenuItem key={country.code}
                       value={country.code}>{country.name}</MenuItem>
                   ))
-                }
+                } */}
               </TextField>
-            </FormControl>
+            {/* </FormControl> */}
 
           </Grid>
           <Grid item xs={12} sm={6}>

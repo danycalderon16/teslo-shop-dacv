@@ -56,7 +56,7 @@ export const CartProvider: FC<Props> = ({ children }) => {
   useEffect(() => {
     if (Cookie.get('firstName')) {
       const shippingAddress: ShippingAddress = {
-        firstName: Cookie.get('fisrtName') || '',
+        firstName: Cookie.get('firstName') || '',
         lastName: Cookie.get('lastName') || '',
         address: Cookie.get('address') || '',
         address2: Cookie.get('address2') || '',
@@ -108,7 +108,7 @@ export const CartProvider: FC<Props> = ({ children }) => {
   }
 
   const updateAddress = (address: ShippingAddress) => {
-    Cookie.set('fisrtName', address.firstName)
+    Cookie.set('firstName', address.firstName)
     Cookie.set('lastName', address.lastName)
     Cookie.set('address', address.address)
     Cookie.set('address2', address.address2 || '')
