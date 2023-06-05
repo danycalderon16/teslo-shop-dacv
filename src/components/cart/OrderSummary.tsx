@@ -1,17 +1,29 @@
 import { CartContext } from '@/context'
 import { currency } from '@/utils'
 import { Grid, Typography } from '@mui/material'
-import React, { useContext } from 'react'
+import React, { FC, useContext } from 'react'
 
-export const OrderSummary = () => {
-  const {numberOfItems, subTotal, total, tax} = useContext(CartContext);
+interface Props {
+  summaryItems?: {
+    numberOfItems: number;
+    subTotal: number;
+    total: number;
+    tax: number
+  }
+}
+
+
+export const OrderSummary:FC<Props> = ({summaryItems}) => {
+  const cart = useContext(CartContext);
+  // const { numberOfItems, subTotal, total, tax } = useContext(CartContext);
+  const { numberOfItems, subTotal, total, tax } = summaryItems ? summaryItems : cart;
   return (
     <Grid container>
       <Grid item xs={6}>
         <Typography>No. Productos</Typography>
       </Grid>
       <Grid item xs={6} display={'flex'} justifyContent={'end'}>
-        <Typography>{numberOfItems} {numberOfItems>1?'prodcutos':'producto'}</Typography>
+        <Typography>{numberOfItems} {numberOfItems > 1 ? 'prodcutos' : 'producto'}</Typography>
       </Grid>
       <Grid item xs={6}>
         <Typography>Subtotal</Typography>
@@ -20,7 +32,7 @@ export const OrderSummary = () => {
         <Typography>{currency.format(subTotal)}</Typography>
       </Grid>
       <Grid item xs={6}>
-        <Typography>Impuestos ({Number(process.env.NEXT_PUBLIC_TAX_RATE)*100}%)</Typography>
+        <Typography>Impuestos ({Number(process.env.NEXT_PUBLIC_TAX_RATE) * 100}%)</Typography>
       </Grid>
       <Grid item xs={6} display={'flex'} justifyContent={'end'}>
         <Typography>{currency.format(tax)}</Typography>

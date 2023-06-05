@@ -1,7 +1,9 @@
 import { FC, useEffect, useReducer } from 'react';
 import Cookie from 'js-cookie'
 import { CartContext, cartReducer } from './'
-import { ICartProduct } from '@/interfaces';
+import { ICartProduct, IOrder, ShippingAddress } from '@/interfaces';
+import { tesloApi } from '@/api';
+import axios from 'axios';
 
 export interface CartState {
   isLoaded: boolean;
@@ -14,17 +16,6 @@ export interface CartState {
   shippingAddress?: ShippingAddress
 }
 
-export interface ShippingAddress {
-  firstName: string;
-  lastName: string;
-  address: string;
-  address2?: string;
-  zip: string;
-  city: string;
-  country: string;
-  phone: string;
-}
-
 const CART_INITIAL_STATE: CartState = {
   isLoaded: false,
   cart: Cookie.get('cart') ? JSON.parse(Cookie.get('cart')!) : [],
@@ -32,7 +23,7 @@ const CART_INITIAL_STATE: CartState = {
   subTotal: 0,
   tax: 0,
   total: 0,
-  shippingAddress: undefined,
+  shippingAddress: undefined
 }
 
 interface Props {
@@ -116,7 +107,49 @@ export const CartProvider: FC<Props> = ({ children }) => {
     Cookie.set('city', address.city)
     Cookie.set('country', address.country)
     Cookie.set('phone', address.phone)
-    dispatch({ type: '[Cart] - Update Address', payload: address});
+    dispatch({ type: '[Cart] - Update Address', payload: address });
+  }
+
+  const createOrder = async (): Promise<{ hasError: boolean, message: string }> => {
+    if (!state.shippingAddress) {
+      throw new Error('No hay direccion de entrega');
+    }
+
+    const body: IOrder = {
+      orderItems: state.cart.map(p => ({
+        ...p,
+        size: p.size!
+      })),
+      shippingAddress: state.shippingAddress,
+      numberOfItems: state.numberOfItems,
+      subTotal: state.subTotal,
+      tax: state.tax,
+      total: state.total,
+      isPaid: false,
+    }
+    try {
+      const { data } = await tesloApi.post('/orders', body);
+      
+      dispatch({type:'[Cart] - Order complete'});
+
+      return {
+        hasError: false,
+        message: data._id!
+      }
+
+    } catch (error) {
+      if(axios.isAxiosError(error)){
+
+        return {
+          hasError: true,
+          message:error.response?.data.message
+        }
+      }
+      return {
+        hasError: true,
+        message:"Error not found, communicating with admin"
+      }
+    }
   }
 
   return (
@@ -128,6 +161,9 @@ export const CartProvider: FC<Props> = ({ children }) => {
       updateCartQuantity,
       removeCartProduct,
       updateAddress,
+
+      // Orders
+      createOrder
     }}>
       {children}
     </CartContext.Provider>
