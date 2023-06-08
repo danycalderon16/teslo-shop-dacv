@@ -15,7 +15,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
     case 'PUT':
       return updateUsers(req, res);
       default:
-        return res.status(200).json({ message: 'Bad Request' })
+        return res.status(400).json({ message: 'Bad Request' })
     }
 }
 
@@ -31,12 +31,14 @@ const  getUsers = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
 const  updateUsers = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
   const {userId = '', role = ''} = req.body;
 
-  if(isValidObjectId(userId)){
-    return res.status(200).json({ message: 'User does not exits' })
+  console.log(userId, role);
+  
+  if(!isValidObjectId(userId)){
+    return res.status(400).json({ message: 'User ID not valid: '+ userId });
   }
   const validRoles = ['admin', 'super-user', 'SEO', 'client'];
   if(!validRoles.includes(role)){
-    return res.status(200).json({ message: 'Role does not exits in '+validRoles.join(', ') })
+    return res.status(400).json({ message: 'Role does not exits in '+validRoles.join(', ') })
   }
 
   await db.connect();
@@ -44,7 +46,7 @@ const  updateUsers = async (req: NextApiRequest, res: NextApiResponse<Data>) => 
 
   if(!user){
     await db.disconnect();
-    return res.status(200).json({ message: 'User does not exits: ' +userId })
+    return res.status(400).json({ message: 'User does not exits: ' +userId })
   }
   user.role = role;
   await user.save();
