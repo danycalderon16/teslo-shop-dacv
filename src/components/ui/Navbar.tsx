@@ -1,7 +1,9 @@
 import React, { useContext, useState } from 'react'
 import { AppBar, Badge, Box, Button, IconButton, Input, InputAdornment, Link, Toolbar, Typography } from '@mui/material'
 import NextLink from 'next/link'
-import { ClearOutlined, SearchOutlined, ShoppingCartOutlined } from '@mui/icons-material'
+import ClearOutlined from '@mui/icons-material/ClearOutlined'
+import SearchOutlined from '@mui/icons-material/SearchOutlined'
+import ShoppingCartOutlined from '@mui/icons-material/ShoppingCartOutlined'
 import { useRouter } from 'next/router'
 import { CartContext, UiContext } from '@/context'
 
