@@ -1,11 +1,12 @@
 import React from 'react'
 import NextLink from 'next/link'
 import useSWR from 'swr'
-import { CardMedia, Grid, Link } from '@mui/material'
+import { Box, Button, CardMedia, Grid, Link } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { AdminLayout } from '@/components/layouts'
 import { IProduct } from '@/interfaces'
 import CategoryOutlined  from '@mui/icons-material/CategoryOutlined'
+import AddOutlined from '@mui/icons-material/AddOutlined';
 
 const columns:GridColDef[] = [
   {
@@ -68,6 +69,14 @@ const ProductsPage = () => {
       subTitle='Mantenimiento de productos'
       icon={<CategoryOutlined />}
     >
+      <Box display='flex' justifyContent={'end'} sx={{mb:2}}>
+        <Button 
+          startIcon={<AddOutlined/>}
+          color='secondary'
+          href="/admin/products/new">
+          Crear producto
+        </Button>
+      </Box>
       <Grid container className='fadeIn'>
         <Grid item xs={12} sx={{ height: 650, width: '100%' }}>
           <DataGrid

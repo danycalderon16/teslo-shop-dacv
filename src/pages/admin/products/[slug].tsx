@@ -1,5 +1,6 @@
-import React, { ChangeEvent, FC, useEffect, useState } from 'react'
+import React, { ChangeEvent, FC, useEffect, useRef, useState } from 'react'
 import { GetServerSideProps } from 'next'
+import { useRouter } from 'next/router';
 import { useForm, Controller } from 'react-hook-form';
 
 import { Box, Button, capitalize, Card, CardActions, CardMedia, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormGroup, FormLabel, Grid, ListItem, Paper, Radio, RadioGroup, TextField } from '@mui/material';
@@ -10,6 +11,8 @@ import UploadOutlined from '@mui/icons-material/UploadOutlined';
 import { AdminLayout } from '../../../components/layouts'
 import { IProduct } from '../../../interfaces';
 import { dbProducts } from '../../../database';
+import { tesloApi } from '@/api';
+import { Product } from '@/models';
 
 
 const validTypes = ['shirts', 'pants', 'hoodies', 'hats']
@@ -36,65 +39,109 @@ interface Props {
 
 const ProductAdminPage: FC<Props> = ({ product }) => {
 
-	const { register, 
-		control, 
-		handleSubmit, 
-		formState: { errors }, 
-		getValues, 
+	const { register,
+		control,
+		handleSubmit,
+		formState: { errors },
+		getValues,
 		setValue,
 		watch
 	} = useForm<FormData>({
 		defaultValues: product,
 	});
 
+	const router = useRouter();
 	const [newTagsValue, setNewTagsValue] = useState('');
-	const [tags, setTags] = useState(product.tags)
+	const [isSaving, setIsSaving] = useState(false);
+ 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		const subscription = watch((value, {name, type})=> {
-			if(name == 'title'){
+		const subscription = watch((value, { name, type }) => {
+			if (name == 'title') {
 				const newSlug = value.title?.trim()
-					.replaceAll(' ','_')
-					.replaceAll('\'','')
+					.replaceAll(' ', '_')
+					.replaceAll('\'', '')
 					.toLocaleLowerCase() || '';
 				setValue('slug', newSlug);
-			}			
+			}
 		});
 		return () => {
 			subscription.unsubscribe();
 		};
 	}, [watch, setValue]);
 
-	const onChangeSize = (size:string) => {
+	const onChangeSize = (size: string) => {
 		const currentSizes = getValues('sizes');
-		if(currentSizes.includes(size)){
-			return setValue('sizes', currentSizes.filter(s=> s!== size),{shouldValidate:true})
+		if (currentSizes.includes(size)) {
+			return setValue('sizes', currentSizes.filter(s => s !== size), { shouldValidate: true })
 		}
 
-	const tamaniosPredefinidos: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-	const arreglo = [...currentSizes, size]
+		const tamaniosPredefinidos: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+		const arreglo = [...currentSizes, size]
 
-	arreglo.sort((a, b) => {
-		return tamaniosPredefinidos.indexOf(a) - tamaniosPredefinidos.indexOf(b);
-	});
+		arreglo.sort((a, b) => {
+			return tamaniosPredefinidos.indexOf(a) - tamaniosPredefinidos.indexOf(b);
+		});
 
-		setValue('sizes',arreglo, {shouldValidate:true});
+		setValue('sizes', arreglo, { shouldValidate: true });
 	}
 
 	const onDeleteTag = (tag: string) => {
-		setTags(state => state.filter(current => current !== tag))
+		const currentTags = getValues('tags');
+		setValue('tags', currentTags.filter(current => current !== tag), { shouldValidate: true });
 	}
 
-	const onSubmit = (form: FormData) => {
-		console.log(form);
-	}
+	const onSubmit = async (form: FormData) => {
+		if (form.images.length < 2) return alert('Mínimo 2 imágenes');
+		setIsSaving(true);
+		try {
+			const { data } = await tesloApi({
+				url: '/admin/products',
+				method: form._id ? 'PUT' : 'POST',
+				data: form
+			});
+			console.log({ data });
 
-	const addNewTags = (code: string)=> {
-		if(code ==='Space'){		
-			const words = newTagsValue.trim().split(' ');
-			// const wordsArr = words.filter(word => !tags.includes(word));
-			setTags(state => state.concat(words.filter(word => !tags.includes(word))));
+			if (!form._id) {
+				router.replace(`/admin/products/${form.slug}`);
+			} else {
+				setIsSaving(false);
+			}
+		} catch (error) {
+			console.error(error);
+			setIsSaving(false);
 		}
+	}
+
+	const addNewTags = () => {
+		// const words = newTagsValue.trim().split(' ');
+		// // const wordsArr = words.filter(word => !tags.includes(word));
+		// setTags(state => state.concat(words.filter(word => !tags.includes(word))));
+
+		const newTag = newTagsValue.trim().toLocaleLowerCase();
+		setNewTagsValue('');
+		const currentTags = getValues('tags');
+
+		if (currentTags.includes(newTag)) return;
+
+		setValue('tags', [...currentTags, newTag], { shouldValidate: true });
+	}
+
+	const onFileSelected = ({target}:ChangeEvent<HTMLInputElement>) =>{
+		if(!target.files || target.files.length === 0) return;
+
+		
+		try {
+			for(const file of target.files) {
+				const  formData = new FormData();
+				console.log(file);
+				
+			}
+
+		} catch (error) {
+			
+		}
+		
 	}
 
 	return (
@@ -110,6 +157,7 @@ const ProductAdminPage: FC<Props> = ({ product }) => {
 						startIcon={<SaveOutlined />}
 						sx={{ width: '150px' }}
 						type="submit"
+						disabled={isSaving}
 					>
 						Guardar
 					</Button>
@@ -234,10 +282,10 @@ const ProductAdminPage: FC<Props> = ({ product }) => {
 								validSizes.map(size => (
 									<FormControlLabel
 										key={size}
-										control={<Checkbox checked={getValues('sizes').includes(size)}/>}
-										label={size} 
-										onChange={()=> onChangeSize(size)}
-										/>
+										control={<Checkbox checked={getValues('sizes').includes(size)} />}
+										label={size}
+										onChange={() => onChangeSize(size)}
+									/>
 								))
 							}
 						</FormGroup>
@@ -264,10 +312,10 @@ const ProductAdminPage: FC<Props> = ({ product }) => {
 							variant="filled"
 							fullWidth
 							value={newTagsValue}
-							onChange={ (e) => setNewTagsValue(e.target.value)}
+							onChange={(e) => setNewTagsValue(e.target.value)}
 							sx={{ mb: 1 }}
 							helperText="Presiona [spacebar] para agregar"
-							onKeyUp={(v) => addNewTags(v.code)}
+							onKeyUp={({ code }) => code === 'Space' ? addNewTags() : undefined}
 						/>
 
 						<Box sx={{
@@ -279,7 +327,7 @@ const ProductAdminPage: FC<Props> = ({ product }) => {
 						}}
 							component="ul">
 							{
-								tags.map((tag) => {
+								getValues('tags').map((tag) => {
 
 									return (
 										<Chip
@@ -303,15 +351,21 @@ const ProductAdminPage: FC<Props> = ({ product }) => {
 								fullWidth
 								startIcon={<UploadOutlined />}
 								sx={{ mb: 3 }}
-							>
+								onClick={() => fileInputRef.current?.click()}>
 								Cargar imagen
 							</Button>
+							<input
+							ref={fileInputRef}
+								type="file"
+								multiple
+								accept='image/png, image/jpeg, image/gif'
+								style={{ display: 'none' }}
+								onChange={onFileSelected}/>
 
 							<Chip
 								label="Es necesario al 2 imagenes"
 								color='error'
-								variant='outlined'
-							/>
+								variant='outlined'/>
 
 							<Grid container spacing={2}>
 								{
@@ -353,7 +407,16 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
 
 	const { slug = '' } = query;
 
-	const product = await dbProducts.getProductBySlug(slug.toString());
+	let product: IProduct | null;
+
+	if (slug === 'new') {
+		const tempProduct = JSON.parse(JSON.stringify(new Product()))
+		delete tempProduct._id;
+		tempProduct.images = ['img1.jpg', 'img2.jpg'];
+		product = tempProduct;
+	} else {
+		product = await dbProducts.getProductBySlug(slug.toString());
+	}
 
 	if (!product) {
 		return {
