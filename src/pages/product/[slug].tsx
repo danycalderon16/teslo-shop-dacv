@@ -142,7 +142,7 @@ interface ProductSlug {
 }
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  const productSlugs = await dbProducts.getAllProductSlug();
+  const productSlugs = await dbProducts.getAllProductSlugs();
   // const slugs = ['kids_cybertruck_tee'];
   return {
     paths: productSlugs.map(({ slug }) => ({

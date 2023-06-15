@@ -4,6 +4,9 @@ import { IProduct } from '@/interfaces'
 import { Product } from '@/models';
 import { isValidObjectId } from 'mongoose';
 
+import { v2 as cloudinary } from 'cloudinary'
+cloudinary.config(process.env.CLOUDINARY_URL || '');
+
 type Data = { message: string }
   | IProduct[]
   | IProduct
@@ -32,8 +35,15 @@ const getProducts = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
   // TODO: 
   // We will need to update the images
   await db.disconnect();
+  const updatedProducts = products.map(product => {
+    product.images = product.images.map(image => {
+      return image.includes('http') ? image : `${process.env.HOST_NAME}products/${image}`
+    });
+    return product;
+  });
 
-  return res.status(200).json(products);
+
+  return res.status(200).json(updatedProducts);
 }
 const updateProduct = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
   const { _id = '', images = [] } = req.body as IProduct;
@@ -53,10 +63,17 @@ const updateProduct = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
       return res.status(400).json({ message: 'No existe un producto con ese id' });
     }
     //TODO: eliminar fotos en cloudinary
+    product.images.forEach(async (image) => {
+      if (!images.includes(image)) {
+        const [fileid, extentision] = image
+          .substring(image.lastIndexOf('/') + 1)
+          .split('.');
+        console.log({image, fileid, extentision});
+        await cloudinary.uploader.destroy(fileid);
+      }
+    })
 
-    const resUpdate = await product.updateOne(req.body);
-
-    console.log(resUpdate);
+    await product.updateOne(req.body);
     await db.disconnect();
 
     return res.status(200).json(product);
@@ -73,11 +90,11 @@ const crateProduct = async (req: NextApiRequest, res: NextApiResponse<Data>) => 
   if (images.length < 2) {
     return res.status(400).json({ message: 'Es necesario al menos 2 imágenes' });
   }
- 
+
   try {
     await db.connect();
-    const productDB = await Product.findOne({slug:req.body.slug})
-    if(productDB){
+    const productDB = await Product.findOne({ slug: req.body.slug })
+    if (productDB) {
       return res.status(400).json({ message: 'Ya existe un producto con ese slug' });
     }
 
